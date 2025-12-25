@@ -28,6 +28,9 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<mybatis-plus.version>3.5.7</mybatis-plus.version>
+		<!-- 显式声明新版 mybatis-spring -->
+		<mybatis-spring.version>3.0.3</mybatis-spring.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -47,8 +50,26 @@
 		<dependency>
 			<groupId>com.baomidou</groupId>
 			<artifactId>mybatis-plus-boot-starter</artifactId>
-			<version>3.5.7</version> <!-- 兼容 Spring Boot 3.x -->
+			<version>${mybatis-plus.version}</version>
+
+			<exclusions>
+				<!-- 排除它自带的旧版 mybatis-spring -->
+				<exclusion>
+					<groupId>org.mybatis</groupId>
+					<artifactId>mybatis-spring</artifactId>
+				</exclusion>
+			</exclusions>
+
 		</dependency>
+
+		<!-- 手动引入兼容 Spring Boot 3 的 mybatis-spring 3.0.3 -->
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis-spring</artifactId>
+			<version>${mybatis-spring.version}</version>
+		</dependency>
+
+
 
 		<dependency>
 			<groupId>com.mysql</groupId>
