@@ -14,9 +14,29 @@
         <el-form-item label="设备名称">
           <el-input v-model="searchForm.name" placeholder="请输入设备名称" clearable />
         </el-form-item>
+
+        <!-- 设备类别筛选 -->
+        <el-form-item label="设备类别">
+          <el-select
+            v-model="searchForm.category"
+            placeholder="全部类别"
+            clearable
+            style="width: 150px"
+          >
+            <el-option label="计算机" value="计算机" />
+            <el-option label="示波器" value="示波器" />
+            <el-option label="万用表" value="万用表" />
+            <el-option label="电源" value="电源" />
+            <!-- 可根据实际需求扩展 -->
+          </el-select>
+        </el-form-item>
+
+        
         <el-form-item>
           <el-button type="primary" @click="()=>loadData()">搜索</el-button>
           <el-button @click="resetSearch">重置</el-button>
+          
+          <el-button type="success" @click="exportExcel" :loading="exportLoading">导出 Excel</el-button>
         </el-form-item>
       </el-form>
 
@@ -109,13 +129,21 @@
 import { ref, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
+// 导入 Excel 相关库
+import * as XLSX from 'xlsx'
+import { saveAs } from 'file-saver'
 
 // 分页 & 搜索
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
-const searchForm = reactive({ name: '' })
+const searchForm = reactive({ 
+  name: '' ,
+  category: '' // 新增设备类别筛选
+})
 const loading = ref(false)
+
+const exportLoading = ref(false) // 导出按钮 loading
 
 // 表格数据
 const tableData = ref([])
@@ -139,21 +167,44 @@ const dialogTitle = computed(() => (editMode.value ? '编辑设备' : '新增设
 
 // 表单校验规则
 const rules = {
-  name: [{ required: true, message: '请输入设备名称', trigger: 'blur' }],
-  category: [{ required: true, message: '请输入设备类别', trigger: 'blur' }],
-  location: [{ required: true, message: '请输入存放位置', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
+  name: [{ required: true, message: '请输入设备名称', trigger: 'blur' }, // 名称必填
+         { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
+  ],
+  category: [{ required: true, message: '请输入设备类别', trigger: 'blur' }, // 类别必填
+            { min: 2, max: 50, message: '类别名称过长', trigger: 'blur' }
+  ],
+  location: [{ required: true, message: '请输入存放位置', trigger: 'blur' }, // 存放位置必填
+            { pattern: /\S/, message: '不能只输入空格', trigger: 'blur' } 
+  ],
+  status: [{ required: true, message: '请选择状态', trigger: 'change' }], // 状态必填
+  purchaseDate: [ // 可选字段，但如果填写则校验
+    {
+      validator: (rule, value, callback) => {
+        if (value && new Date(value) > new Date()) {
+          callback(new Error('购入日期不能是未来日期'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change'
+    }
+  ]
 }
 
 // 加载数据
 const loadData = async (currentPage = page.value) => {
+
+  // 防御性处理（防止传入 event）
+  if (typeof currentPage !== 'number') currentPage = page.value
+
   loading.value = true
   try {
     const res = await axios.get('/api/devices/page', {
       params: {
         page: currentPage,
         size: pageSize.value,
-        name: searchForm.name || undefined
+        name: searchForm.name || undefined,
+        category: searchForm.category || undefined // 传递设备类别参数
       }
     })
     // MyBatis Plus 返回的是 records
@@ -169,7 +220,9 @@ const loadData = async (currentPage = page.value) => {
 
 // 重置搜索
 const resetSearch = () => {
+  // 清空所有条件
   searchForm.name = ''
+  searchForm.category = '' // 重置设备类别筛选
   loadData(1)
 }
 
@@ -202,10 +255,17 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
-// 编辑（预留，可后续实现）
+// 编辑设备
 const handleEdit = (row) => {
   editMode.value = true
-  Object.assign(form, { ...row })
+  Object.assign(form, { 
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    location: row.location,
+    status: row.status,
+    purchaseDate: row.purchaseDate // 注意：如果后端返回的是字符串 '2024-05-15'，el-date-picker 能识别
+  })
   dialogVisible.value = true
 }
 
@@ -214,9 +274,12 @@ const submitForm = async () => {
   await formRef.value.validate()
   try {
     if (editMode.value) {
-      // TODO: 实现更新接口（如果需要）
-      ElMessage.warning('编辑功能暂未实现')
+      // 更新设备
+      await axios.put(`/api/devices/${form.id}`, form)
+      ElMessage.success('更新成功')
+      
     } else {
+      // 新增设备
       await axios.post('/api/devices', form)
       ElMessage.success('新增成功')
     }
@@ -224,6 +287,32 @@ const submitForm = async () => {
     loadData(1)
   } catch (err) {
     ElMessage.error('保存失败：' + (err.response?.data?.message || err.message))
+  }
+}
+
+// 导出 Excel（按当前筛选条件）
+const exportExcel = async () => {
+  exportLoading.value = true
+  try {
+    // 调用后端导出接口（传当前搜索条件）
+    const res = await axios.get('/api/devices/export', {
+      params: {
+        name: searchForm.name || undefined,
+        category: searchForm.category || undefined
+      },
+      responseType: 'blob' // ⚠️ 关键：接收二进制数据
+    })
+
+    // 创建文件并下载
+    const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    saveAs(blob, `设备清单_${new Date().getTime()}.xlsx`)
+    
+    ElMessage.success('导出成功')
+  } catch (err) {
+    console.error('导出失败:', err)
+    ElMessage.error('导出失败：' + (err.response?.data?.message || '网络错误'))
+  } finally {
+    exportLoading.value = false
   }
 }
 

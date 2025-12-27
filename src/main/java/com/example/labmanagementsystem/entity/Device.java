@@ -1,5 +1,7 @@
 package com.example.labmanagementsystem.entity;
 
+import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.write.style.ColumnWidth;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
@@ -10,13 +12,20 @@ import java.time.LocalDateTime;
 @TableName("device")
 public class Device {
 
+    @ExcelProperty("设备ID")
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    @ExcelProperty("设备名称")
     private String name;
+    @ExcelProperty("设备类别")
     private String category;
+    @ExcelProperty("状态")
     private String status;
+    @ExcelProperty("存放位置")
     private String location;
+    @ExcelProperty("购入日期")
+    @ColumnWidth(15) //定义excel表格列宽
     private LocalDate purchaseDate;
 
     /**

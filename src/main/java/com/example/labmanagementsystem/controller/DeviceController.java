@@ -1,16 +1,24 @@
 package com.example.labmanagementsystem.controller;
 
 
+import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.labmanagementsystem.common.Result;
 import com.example.labmanagementsystem.entity.Device;
 import com.example.labmanagementsystem.service.DeviceService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/devices") // 所有接口路径前缀
@@ -121,5 +129,35 @@ public class DeviceController {
         return Result.success(null);
     }
 
+    @GetMapping("/export")
+    public void export(HttpServletResponse response,
+                       @RequestParam(required = false) String name,
+                       @RequestParam(required = false) String category)throws IOException{
+
+        // 构建查询条件
+        LambdaQueryWrapper<Device> query = new LambdaQueryWrapper<>();
+
+        if (StringUtils.isNotBlank(name)) {
+            query.like(Device::getName, name);
+        }
+        if (StringUtils.isNotBlank(category)) {
+            query.eq(Device::getCategory, category);
+        }
+
+        // 查询全部匹配数据
+        List<Device> devices = deviceService.list(query);
+
+        // 设置响应头
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        String fileName = URLEncoder.encode("设备清单", "UTF-8").replaceAll("\\+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+
+        // 直接写入 Device 列表
+        EasyExcel.write(response.getOutputStream(), Device.class)
+                .sheet("设备列表")
+                .doWrite(devices);
+
+    }
 
 }
