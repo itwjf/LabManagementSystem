@@ -92,7 +92,18 @@
 <!--			<version>3.0.5</version>-->
 <!--			<scope>test</scope>-->
 <!--		</dependency>-->
+
+<!--		在 Spring Boot 3 项目中集成 Swagger 接口文档 的，而且是 国产增强版 Swagger UI —— Knife4j-->
+<!--		用于 自动生成 RESTful API 文档-->
+		<dependency>
+			<groupId>com.github.xiaoymin</groupId>
+			<artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+			<version>4.5.0</version>
+		</dependency>
+
 	</dependencies>
+
+
 
 	<build>
 		<plugins>
