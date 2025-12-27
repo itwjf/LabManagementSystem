@@ -300,7 +300,7 @@ const exportExcel = async () => {
         name: searchForm.name || undefined,
         category: searchForm.category || undefined
       },
-      responseType: 'blob' // ⚠️ 关键：接收二进制数据
+      responseType: 'blob' //  关键：接收二进制数据
     })
 
     // 创建文件并下载
