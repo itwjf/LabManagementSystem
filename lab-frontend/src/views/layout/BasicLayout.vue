@@ -8,6 +8,13 @@
     <!-- 顶部导航栏 -->
     <el-header height="60px" style="background-color: #409EFF; color: white; display: flex; align-items: center; padding-left: 20px">
       <h2 style="margin: 0; font-weight: bold">实验室设备管理系统</h2>
+
+      <!-- 已登录时显示用户信息和退出按钮 -->
+    <div style="color: white; display: flex; align-items: center; gap: 10px">
+      欢迎，{{ user?.realName || user?.username || '访客' }}
+      <el-button size="small" type="info" @click="logout">退出</el-button>
+    </div>
+    
     </el-header>
 
     <!-- 主体区域（包含左侧菜单 + 中间内容） -->
@@ -57,8 +64,32 @@
   <script setup> 是 Vue 3 的新语法，用来写 JavaScript 逻辑
 -->
 <script setup>
-// 引入图标组件（Element Plus 提供）
-import { Monitor } from '@element-plus/icons-vue'
+import { onMounted, ref } from 'vue'
+import { Monitor as Device, User, Setting } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+const router = useRouter()
+const user = ref(null)
+
+const fetchCurrentUser = async () => {
+  try {
+    const res = await axios.get('/api/auth/me')
+    user.value = res.data
+  } catch (err) {
+    console.error('获取当前用户失败:', err)
+  }
+}
+
+const logout = () => {
+  localStorage.removeItem('authToken')
+  user.value = null
+  router.push('/login')
+}
+
+onMounted(() => {
+  fetchCurrentUser()
+})
 </script>
 
 <!--

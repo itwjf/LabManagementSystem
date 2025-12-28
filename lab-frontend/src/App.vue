@@ -2,6 +2,7 @@
 <template>
   <div id="app">
     <!-- 路由出口：所有页面都会在这里显示 -->
+    <!-- 根据当前路由是否需要认证，决定渲染哪个布局 -->
     <router-view />
   </div>
 </template>

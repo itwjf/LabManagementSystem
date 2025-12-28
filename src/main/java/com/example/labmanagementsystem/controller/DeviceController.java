@@ -63,6 +63,9 @@ public class DeviceController {
                                         @RequestParam(required = false) String status,
                                         @RequestParam(required = false) String category){
 
+
+
+
         if (size>100) size = 100; //最多查100条，防止攻击
 
         //构造分页对象

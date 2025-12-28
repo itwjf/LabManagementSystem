@@ -29,8 +29,8 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable()) // 关闭 CSRF（前后端分离常用）
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 无状态
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/**").permitAll() // 登录接口放行
-                        .anyRequest().authenticated() // 其他请求必须认证
+                    .requestMatchers("/api/auth/login").permitAll() // 登录接口放行
+                    .anyRequest().authenticated() // 其他请求必须认证
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // 添加 JWT 过滤器
 

@@ -1,9 +1,15 @@
 package com.example.labmanagementsystem.controller;
 
+import com.example.labmanagementsystem.entity.User;
+import com.example.labmanagementsystem.security.LoginUserDetails;
 import com.example.labmanagementsystem.service.AuthService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +38,17 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<?> currentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof LoginUserDetails)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("未登录");
+        }
+        LoginUserDetails details = (LoginUserDetails) authentication.getPrincipal();
+        User user = details.getUser();
+        return ResponseEntity.ok(new CurrentUserResponse(user));
+    }
+
     /**
      * 登录请求 DTO
      */
@@ -51,6 +68,23 @@ public class AuthController {
 
         public LoginResponse(String token) {
             this.token = token;
+        }
+    }
+
+    @Data
+    public static class CurrentUserResponse {
+        private String username;
+        private String realName;
+        private String role;
+        private String department;
+        private String contact;
+
+        public CurrentUserResponse(User user) {
+            this.username = user.getUsername();
+            this.realName = user.getRealName();
+            this.role = user.getRole();
+            this.department = user.getDepartment();
+            this.contact = user.getContact();
         }
     }
 }
