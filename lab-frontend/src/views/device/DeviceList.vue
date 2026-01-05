@@ -105,6 +105,7 @@
             <el-option label="可用" value="可用" />
             <el-option label="维修中" value="维修中" />
             <el-option label="报废" value="报废" />
+            <el-option label="已借出" value="已借出" />
           </el-select>
         </el-form-item>
         <el-form-item label="购入日期" prop="purchaseDate">
