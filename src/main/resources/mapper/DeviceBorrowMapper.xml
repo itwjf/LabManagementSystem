@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.labmanagementsystem.mapper.DeviceBorrowMapper">
+
+    <!-- 我的借用记录（联表 device） -->
+    <select id="selectMyBorrowsWithDeviceName" resultType="com.example.labmanagementsystem.entity.DeviceBorrow">
+        SELECT
+            b.*,
+            d.name AS deviceName
+        FROM device_borrow b
+                 LEFT JOIN device d ON b.device_id = d.id
+        WHERE b.borrower_id = #{borrowerId}
+        ORDER BY b.borrow_time DESC
+    </select>
+
+    <!-- 所有借用记录（联表 device） -->
+    <select id="selectAllBorrowsWithDeviceName" resultType="com.example.labmanagementsystem.entity.DeviceBorrow">
+        SELECT
+            b.*,
+            d.name AS deviceName
+        FROM device_borrow b
+                 LEFT JOIN device d ON b.device_id = d.id
+        ORDER BY b.borrow_time DESC
+    </select>
+
+</mapper>

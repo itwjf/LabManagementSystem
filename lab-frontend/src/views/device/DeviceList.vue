@@ -68,6 +68,14 @@
         </el-table-column>
         <el-table-column label="操作" width="180">
           <template #default="{ row }">
+            <el-button
+              v-if="row.status === '可用'"
+              size="small"
+              type="primary"
+              @click="openBorrowDialog(row)"
+            >
+              借用
+            </el-button>
             <el-button size="small" type="primary" link @click="handleEdit(row)">编辑</el-button>
             <el-button size="small" type="danger" link @click="handleDelete(row.id)">删除</el-button>
           </template>
@@ -123,6 +131,43 @@
         <el-button type="primary" @click="submitForm">确定</el-button>
       </template>
     </el-dialog>
+
+    <!--  设备借用弹窗 -->
+    <el-dialog v-model="borrowDialogVisible" title="设备借用登记" width="500px">
+      <el-form :model="borrowForm" :rules="rules" ref="borrowFormRef" label-width="100px">
+        <el-form-item label="设备名称">
+          {{ currentDevice?.name }}
+        </el-form-item>
+        
+        <el-form-item label="预计归还时间" prop="expectedReturnTime">
+          <el-date-picker
+            v-model="borrowTime"
+            type="datetime"
+            placeholder="选择预计归还时间"
+            value-format="YYYY-MM-DD HH:mm"
+            format="YYYY-MM-DD HH:mm"
+            editable
+            clearable
+          />
+        </el-form-item>
+        
+        <el-form-item label="借用用途" prop="purpose">
+          <el-input v-model="borrowForm.purpose" type="textarea" :rows="2" />
+        </el-form-item>
+        
+        <el-form-item label="设备状态" prop="deviceConditionOnBorrow">
+          <el-radio-group v-model="borrowForm.deviceConditionOnBorrow">
+            <el-radio label="正常">正常</el-radio>
+            <el-radio label="轻微瑕疵">轻微瑕疵</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button @click="borrowDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitBorrow">确认借用</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -168,6 +213,7 @@ const dialogTitle = computed(() => (editMode.value ? '编辑设备' : '新增设
 
 // 表单校验规则
 const rules = {
+  //新增设备弹窗规则
   name: [{ required: true, message: '请输入设备名称', trigger: 'blur' }, // 名称必填
          { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
   ],
@@ -189,7 +235,10 @@ const rules = {
       },
       trigger: 'change'
     }
-  ]
+  ],
+  //借用设备弹窗规则
+  expectedReturnTime: [{ required: true, message: '请选择预计归还时间', trigger: 'blur' }],
+  purpose: [{ required: true, message: '请输入借用用途', trigger: 'blur' }]
 }
 
 // 加载数据
@@ -199,6 +248,8 @@ const loadData = async (currentPage = page.value) => {
   if (typeof currentPage !== 'number') currentPage = page.value
 
   loading.value = true
+  //建议未来将设备相关 API 也封装到 src/api/device.js
+  //这样组件里就不用直接写 axios.get(...)，便于后期替换或 mock。
   try {
     const res = await axios.get('/api/devices/page', {
       params: {
@@ -209,8 +260,9 @@ const loadData = async (currentPage = page.value) => {
       }
     })
     // MyBatis Plus 返回的是 records
-    tableData.value = res.data.data.records || []
-    total.value = res.data.data.total || 0
+    // res 就是 IPage 对象，不再有 .data.data
+    tableData.value = res.records || []
+    total.value = res.total || 0
     page.value = currentPage
   } catch (err) {
     ElMessage.error('加载失败：' + (err.response?.data?.message || err.message))
@@ -305,6 +357,7 @@ const exportExcel = async () => {
     })
 
     // 创建文件并下载
+    // 注意：导出接口返回 blob，不会触发 JSON 拦截器，所以 res.data 是原始 Blob
     const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     saveAs(blob, `设备清单_${new Date().getTime()}.xlsx`)
     
@@ -316,6 +369,53 @@ const exportExcel = async () => {
     exportLoading.value = false
   }
 }
+
+//定义借用设备弹窗和表单
+const borrowDialogVisible = ref(false)
+const borrowFormRef = ref()
+const currentDevice = ref(null)
+
+const borrowForm = reactive({
+  deviceId: null,
+  expectedReturnTime: '',
+  purpose: '',
+  deviceConditionOnBorrow: '正常'
+})
+
+
+import { borrowDevice } from '@/api/deviceBorrow'
+
+//打开借用弹窗/提交 方法
+const openBorrowDialog = (device) => {
+  currentDevice.value = device
+  borrowForm.deviceId = device.id
+  // 默认 7 天后归还
+  const now = new Date()
+  now.setDate(now.getDate() + 7)
+  borrowForm.expectedReturnTime = now.toISOString().slice(0, 16) // "2026-01-13T15:30"
+  borrowForm.purpose = ''
+  borrowForm.deviceConditionOnBorrow = '正常'
+  borrowDialogVisible.value = true
+}
+const borrowTime = ref(new Date()) // 或者 null
+
+const submitBorrow = async () => {
+  await borrowFormRef.value.validate()
+  
+  // 转换时间为完整 ISO（带秒和 Z）
+  const timeStr = new Date(borrowForm.expectedReturnTime).toISOString()
+  
+  await borrowDevice({
+    ...borrowForm,
+    expectedReturnTime: timeStr
+  })
+  
+  ElMessage.success('借用申请已提交')
+  borrowDialogVisible.value = false
+  // 可选：刷新设备列表
+  loadData() 
+}
+
 
 // 初始加载
 loadData()

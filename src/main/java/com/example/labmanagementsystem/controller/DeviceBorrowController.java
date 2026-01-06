@@ -46,6 +46,22 @@ public class DeviceBorrowController {
 
         // 注意：Service 中需提供按 borrowerId 查询的方法
         IPage<DeviceBorrow> result = deviceBorrowService.getMyBorrows(page, size);
+
+        return Result.success(result);
+    }
+
+    /**
+     * 管理员：分页查询所有借用记录
+     */
+    @GetMapping
+    public Result<IPage<DeviceBorrow>> getAllBorrows(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        if (size > 100) size = 100;
+
+        // Service 中需新增方法：getAllBorrows(page, size)
+        IPage<DeviceBorrow> result = deviceBorrowService.getAllBorrows(page, size);
         return Result.success(result);
     }
 }

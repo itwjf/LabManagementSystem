@@ -45,13 +45,23 @@ const handleLogin = async () => {
 
   try {
     const res = await axios.post('/api/auth/login', form.value)
-    localStorage.setItem('authToken', res.data.token)
+
+    // 🔍 调试：看实际返回什么
+    console.log('登录接口返回:', res)
+     //  安全检查：确保 token 存在
+    if (!res || typeof res.token !== 'string' || res.token.trim() === '') {
+      throw new Error('服务器返回无效登录凭证')
+    }
+
+    localStorage.setItem('authToken', res.token)
 
     // 可选：获取用户信息存入全局状态（如 Pinia/Vuex）
     // 这里简单处理，只通知父组件登录成功
     emit('login-success')
   } catch (err) {
-    error.value = err.response?.data?.message || '用户名或密码错误'
+    //  现在 err 一定是 Error 对象，直接用 err.message
+    error.value = err.message || '登录失败，请稍后重试'
+    ElMessage.error(error.value)
     console.error('登录失败:', err)
   } finally {
     loading.value = false

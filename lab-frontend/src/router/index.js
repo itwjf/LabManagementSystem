@@ -5,6 +5,7 @@ import LoginView from '@/views/LoginView.vue'
 
 // 业务页面
 import DeviceList from '@/views/device/DeviceList.vue'
+import BorrowRecordList from '@/views/device/BorrowRecordList.vue'
 
 // 定义路由规则
 const routes = [
@@ -23,7 +24,8 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       { path: '', redirect: '/devices' },
-      { path: 'devices', name: 'Devices', component: DeviceList }
+      { path: 'devices', name: 'Devices', component: DeviceList },
+      { path: 'borrows', name: 'Borrows', component:BorrowRecordList}
     ]
   },
 
@@ -41,7 +43,10 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('authToken')
 
-  if (to.meta.requiresAuth && !token) {
+  // 检查所有匹配的路由记录中是否有 requiresAuth: true
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+
+  if (requiresAuth && !token) {
     // 需要登录但未登录 → 跳转登录页
     next('/login')
   } else if (to.path === '/login' && token) {

@@ -13,4 +13,6 @@ public interface DeviceBorrowService extends IService<DeviceBorrow> {
     void returnDevice(DeviceReturnDTO dto);
 
     IPage<DeviceBorrow> getMyBorrows(int page, int size);
+
+    IPage<DeviceBorrow> getAllBorrows(int page,int size);
 }

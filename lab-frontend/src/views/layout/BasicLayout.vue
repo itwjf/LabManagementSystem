@@ -36,6 +36,11 @@
             </template>
           </el-menu-item>
 
+          <el-menu-item index="/borrows">
+            <el-icon><DocumentCopy /></el-icon>
+            <span>借用记录</span>
+          </el-menu-item>
+
           <el-menu-item index="/users">
             <template #title>
               <el-icon><User /></el-icon>
@@ -73,11 +78,27 @@ const router = useRouter()
 const user = ref(null)
 
 const fetchCurrentUser = async () => {
+    // ✅ 第一步：从 localStorage 获取 token
+  const token = localStorage.getItem('authToken')
+ // 如果没有 token，直接返回（未登录状态）
+  if (!token) {
+    return
+  }
+
   try {
-    const res = await axios.get('/api/auth/me')
-    user.value = res.data
+    // ✅ 第二步：带上 Authorization 头
+    const res = await axios.get('/api/auth/me', {
+      headers: {
+        Authorization: `Bearer ${token}` // ← 现在 token 已定义！
+      }
+    })
+    user.value = res
   } catch (err) {
     console.error('获取当前用户失败:', err)
+    // 可选：如果 token 无效，自动登出
+    if (err.response?.status === 401) {
+      logout()
+    }
   }
 }
 

@@ -58,6 +58,14 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     *处理业务层异常
+     */
+    @ExceptionHandler(ServiceException.class)
+    public Result<?> handleServiceException(ServiceException e) {
+        return Result.error(403,e.getMessage());
+    }
+
+    /**
      * 处理所有未预期的异常（兜底）
      */
     @ExceptionHandler(Exception.class)

@@ -1,6 +1,7 @@
 package com.example.labmanagementsystem.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -33,4 +34,8 @@ public class DeviceBorrow {
     private Long registrarId;                 // 登记人（通常 = borrowerId）
     private LocalDateTime createdAt;
 
+
+    // 新增：设备名称（来自 device 表）
+    @TableField(exist = false) // 告诉 MyBatis Plus：这不是 device_borrow 表的字段
+    private String deviceName;
 }

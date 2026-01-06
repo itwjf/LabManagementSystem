@@ -8,6 +8,8 @@ import com.example.labmanagementsystem.dto.DeviceBorrowCreateDTO;
 import com.example.labmanagementsystem.dto.DeviceReturnDTO;
 import com.example.labmanagementsystem.entity.Device;
 import com.example.labmanagementsystem.entity.DeviceBorrow;
+import com.example.labmanagementsystem.entity.User;
+import com.example.labmanagementsystem.exception.ServiceException;
 import com.example.labmanagementsystem.mapper.DeviceBorrowMapper;
 import com.example.labmanagementsystem.security.LoginUserDetails;
 import com.example.labmanagementsystem.service.DeviceBorrowService;
@@ -98,21 +100,46 @@ public class DeviceBorrowServiceImpl extends ServiceImpl<DeviceBorrowMapper, Dev
     }
 
     /**
+     *     公共查询方法（不对外暴露）
+     */
+    private IPage<DeviceBorrow> queryBorrows(Page<DeviceBorrow> page, LambdaQueryWrapper<DeviceBorrow> wrapper) {
+        wrapper.orderByDesc(DeviceBorrow::getBorrowTime);
+        return this.page(page, wrapper);
+    }
+    /**
      * 分页查询我的借用记录
-     * @param page
-     * @param size
-     * @return
      */
     @Override
     public IPage<DeviceBorrow> getMyBorrows(int page, int size) {
         LoginUserDetails userDetails = (LoginUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         Long userId = userDetails.getUser().getId();
 
-        Page<DeviceBorrow> pageObj = new Page<>(page, size);
-        LambdaQueryWrapper<DeviceBorrow> queryWrapper = new LambdaQueryWrapper<>(); 
-        queryWrapper.eq(DeviceBorrow::getBorrowerId, userId)
-                .orderByDesc(DeviceBorrow::getBorrowTime);
 
-        return this.page(pageObj, queryWrapper);
+        Page<DeviceBorrow> pageObj = new Page<>(page, size);
+
+
+        return baseMapper.selectMyBorrowsWithDeviceName(pageObj,userId);
+    }
+
+    /**
+     * 获取全部借用记录：一般是管理员用户
+     */
+    @Override
+    public IPage<DeviceBorrow> getAllBorrows(int page, int size) {
+        // 1. 获取当前登录用户详情
+        LoginUserDetails userDetails = (LoginUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String role = userDetails.getUser().getRole();
+
+        if(!"ADMIN".equals(role)){
+            throw new ServiceException("权限不足：仅管理员可查看全部借用记录");
+        }
+
+        // 3. 构造分页对象
+        Page<DeviceBorrow> pageObj = new Page<>(page, size);
+
+
+
+        return baseMapper.selectAllBorrowsWithDeviceName(pageObj);
     }
 }
