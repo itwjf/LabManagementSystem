@@ -40,12 +40,16 @@ public class DeviceBorrowController {
     @GetMapping("/my")
     public Result<IPage<DeviceBorrow>> getMyBorrows(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String deviceId,
+            @RequestParam(required = false) String deviceName,
+            @RequestParam(required = false) String returnStatus,
+            @RequestParam(required = false) String borrowTimeStart,
+            @RequestParam(required = false) String borrowTimeEnd
     ){
         if (size > 100) size = 100;
 
-        // 注意：Service 中需提供按 borrowerId 查询的方法
-        IPage<DeviceBorrow> result = deviceBorrowService.getMyBorrows(page, size);
+        IPage<DeviceBorrow> result = deviceBorrowService.getMyBorrows(page, size, deviceId, deviceName, returnStatus, borrowTimeStart, borrowTimeEnd);
 
         return Result.success(result);
     }
@@ -56,12 +60,18 @@ public class DeviceBorrowController {
     @GetMapping
     public Result<IPage<DeviceBorrow>> getAllBorrows(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String deviceId,
+            @RequestParam(required = false) String deviceName,
+            @RequestParam(required = false) String borrowerName,
+            @RequestParam(required = false) String department,
+            @RequestParam(required = false) String returnStatus,
+            @RequestParam(required = false) String borrowTimeStart,
+            @RequestParam(required = false) String borrowTimeEnd
     ) {
         if (size > 100) size = 100;
 
-        // Service 中需新增方法：getAllBorrows(page, size)
-        IPage<DeviceBorrow> result = deviceBorrowService.getAllBorrows(page, size);
+        IPage<DeviceBorrow> result = deviceBorrowService.getAllBorrows(page, size, deviceId, deviceName, borrowerName, department, returnStatus, borrowTimeStart, borrowTimeEnd);
         return Result.success(result);
     }
 }

@@ -53,10 +53,21 @@ borrowRecordApi.interceptors.response.use(
 )
 
 // 导出接口方法
-export function getMyBorrowRecords(page = 1, size = 100) {
-  return borrowRecordApi.get('/device-borrows/my', { params: { page, size } })
+export function getMyBorrowRecords(params = {}) {
+  const { page = 1, size = 100, deviceId, deviceName, borrowerName, department, returnStatus, borrowTimeStart, borrowTimeEnd } = params
+  return borrowRecordApi.get('/device-borrows/my', {
+    params: { page, size, deviceId, deviceName, borrowerName, department, returnStatus, borrowTimeStart, borrowTimeEnd }
+  })
 }
 
-export function getAllBorrowRecords(page = 1, size = 100) {
-  return borrowRecordApi.get('/device-borrows', { params: { page, size } })
+export function getAllBorrowRecords(params = {}) {
+  const { page = 1, size = 100, deviceId, deviceName, borrowerName, department, returnStatus, borrowTimeStart, borrowTimeEnd } = params
+  return borrowRecordApi.get('/device-borrows', {
+    params: { page, size, deviceId, deviceName, borrowerName, department, returnStatus, borrowTimeStart, borrowTimeEnd }
+  })
+}
+
+// 归还设备
+export function returnDevice(data) {
+  return borrowRecordApi.post('/device-borrows/return', data)
 }

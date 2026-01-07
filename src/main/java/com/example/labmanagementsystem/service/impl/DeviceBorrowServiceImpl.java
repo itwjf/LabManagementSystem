@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class DeviceBorrowServiceImpl extends ServiceImpl<DeviceBorrowMapper, DeviceBorrow> implements DeviceBorrowService {
@@ -73,14 +74,14 @@ public class DeviceBorrowServiceImpl extends ServiceImpl<DeviceBorrowMapper, Dev
     }
 
     /**
-     *
+     * 设备归还登记
      * @param dto
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void returnDevice(DeviceReturnDTO dto) {
 
-        DeviceBorrow borrow = this.getById(dto.getBorrowId());
+        DeviceBorrow borrow = this.getById(dto.getId());
 
         if (borrow == null) {
             throw new RuntimeException("借用记录不存在");
@@ -89,14 +90,31 @@ public class DeviceBorrowServiceImpl extends ServiceImpl<DeviceBorrowMapper, Dev
             throw new RuntimeException("设备已归还，无法重复操作");
         }
 
-        borrow.setActualReturnTime(LocalDateTime.now());
-        borrow.setReturnStatus(dto.getReturnStatus());
+        // 1. 更新借用记录
+        // 解析前端传来的日期字符串，支持格式：yyyy-MM-dd HH:mm:ss
+        LocalDateTime actualReturnTime = LocalDateTime.parse(dto.getActualReturnTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        borrow.setActualReturnTime(actualReturnTime);
+        borrow.setReturnStatus("正常".equals(dto.getDeviceStatusOnReturn()) ? "已归还" : "异常归还");
+        borrow.setDeviceStatusOnReturn(dto.getDeviceStatusOnReturn());
+        borrow.setDamageDescription(dto.getDamageDescription());
+        borrow.setHandler(dto.getHandler());
+        borrow.setReturnTime(LocalDateTime.now());
+        
+        this.updateById(borrow);
 
-        // 更新设备状态
-        Device device = deviceService.getById(borrow.getDeviceId());
-        device.setStatus("正常".equals(dto.getReturnStatus()) ? "可用" : dto.getReturnStatus());
-        deviceService.updateById(device);
-
+        // 2. 更新设备状态
+        Device device = deviceService.getById(dto.getDeviceId());
+        if (device != null) {
+            // 如果设备归还状态正常，设备状态变为"可用"；否则保持异常状态（损坏/丢失）
+            if ("正常".equals(dto.getDeviceStatusOnReturn())) {
+                device.setStatus("可用");
+            } else if ("损坏".equals(dto.getDeviceStatusOnReturn())) {
+                device.setStatus("损坏");
+            } else if ("丢失".equals(dto.getDeviceStatusOnReturn())) {
+                device.setStatus("丢失");
+            }
+            deviceService.updateById(device);
+        }
     }
 
     /**
@@ -110,23 +128,29 @@ public class DeviceBorrowServiceImpl extends ServiceImpl<DeviceBorrowMapper, Dev
      * 分页查询我的借用记录
      */
     @Override
-    public IPage<DeviceBorrow> getMyBorrows(int page, int size) {
+    public IPage<DeviceBorrow> getMyBorrows(int page, int size, String deviceId, String deviceName, String returnStatus, String borrowTimeStart, String borrowTimeEnd) {
         LoginUserDetails userDetails = (LoginUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         Long userId = userDetails.getUser().getId();
-
 
         Page<DeviceBorrow> pageObj = new Page<>(page, size);
 
-
-        return baseMapper.selectMyBorrowsWithDeviceName(pageObj,userId);
+        // 使用自定义SQL查询，联表获取设备名称
+        return baseMapper.selectMyBorrowsWithDeviceName(
+                pageObj,
+                userId,
+                deviceId,
+                deviceName,
+                returnStatus,
+                borrowTimeStart,
+                borrowTimeEnd
+        );
     }
 
     /**
      * 获取全部借用记录：一般是管理员用户
      */
     @Override
-    public IPage<DeviceBorrow> getAllBorrows(int page, int size) {
+    public IPage<DeviceBorrow> getAllBorrows(int page, int size, String deviceId, String deviceName, String borrowerName, String department, String returnStatus, String borrowTimeStart, String borrowTimeEnd) {
         // 1. 获取当前登录用户详情
         LoginUserDetails userDetails = (LoginUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String role = userDetails.getUser().getRole();
@@ -138,8 +162,16 @@ public class DeviceBorrowServiceImpl extends ServiceImpl<DeviceBorrowMapper, Dev
         // 3. 构造分页对象
         Page<DeviceBorrow> pageObj = new Page<>(page, size);
 
-
-
-        return baseMapper.selectAllBorrowsWithDeviceName(pageObj);
+        // 使用自定义SQL查询，联表获取设备名称
+        return baseMapper.selectAllBorrowsWithDeviceName(
+                pageObj,
+                deviceId,
+                deviceName,
+                borrowerName,
+                department,
+                returnStatus,
+                borrowTimeStart,
+                borrowTimeEnd
+        );
     }
 }

@@ -28,8 +28,11 @@ public class DeviceBorrow {
     private String purpose;
     private String deviceConditionOnBorrow;   // 借出状态：正常/轻微瑕疵
 
-    private String returnStatus;              // 未归还 / 正常 / 损坏 / 丢失
-    private String damageDescription;
+    private String returnStatus;              // 未归还 / 已归还 / 异常归还
+    private String deviceStatusOnReturn;      // 归还时设备状态：正常/损坏/丢失
+    private String damageDescription;         // 损坏/丢失说明
+    private String handler;                   // 经办人
+    private LocalDateTime returnTime;         // 归还登记时间
 
     private Long registrarId;                 // 登记人（通常 = borrowerId）
     private LocalDateTime createdAt;

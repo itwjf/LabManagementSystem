@@ -4,7 +4,7 @@
 
 <mapper namespace="com.example.labmanagementsystem.mapper.DeviceBorrowMapper">
 
-    <!-- 我的借用记录（联表 device） -->
+    <!-- 我的借用记录（联表 device，带搜索条件） -->
     <select id="selectMyBorrowsWithDeviceName" resultType="com.example.labmanagementsystem.entity.DeviceBorrow">
         SELECT
             b.*,
@@ -12,16 +12,53 @@
         FROM device_borrow b
                  LEFT JOIN device d ON b.device_id = d.id
         WHERE b.borrower_id = #{borrowerId}
+        <if test="deviceId != null and deviceId != ''">
+            AND b.device_id LIKE CONCAT('%', #{deviceId}, '%')
+        </if>
+        <if test="deviceName != null and deviceName != ''">
+            AND d.name LIKE CONCAT('%', #{deviceName}, '%')
+        </if>
+        <if test="returnStatus != null and returnStatus != ''">
+            AND b.return_status = #{returnStatus}
+        </if>
+        <if test="borrowTimeStart != null and borrowTimeStart != ''">
+            AND DATE(b.borrow_time) &gt;= #{borrowTimeStart}
+        </if>
+        <if test="borrowTimeEnd != null and borrowTimeEnd != ''">
+            AND DATE(b.borrow_time) &lt;= #{borrowTimeEnd}
+        </if>
         ORDER BY b.borrow_time DESC
     </select>
 
-    <!-- 所有借用记录（联表 device） -->
+    <!-- 所有借用记录（联表 device，带搜索条件） -->
     <select id="selectAllBorrowsWithDeviceName" resultType="com.example.labmanagementsystem.entity.DeviceBorrow">
         SELECT
             b.*,
             d.name AS deviceName
         FROM device_borrow b
                  LEFT JOIN device d ON b.device_id = d.id
+        WHERE 1=1
+        <if test="deviceId != null and deviceId != ''">
+            AND b.device_id LIKE CONCAT('%', #{deviceId}, '%')
+        </if>
+        <if test="deviceName != null and deviceName != ''">
+            AND d.name LIKE CONCAT('%', #{deviceName}, '%')
+        </if>
+        <if test="borrowerName != null and borrowerName != ''">
+            AND b.borrower_name LIKE CONCAT('%', #{borrowerName}, '%')
+        </if>
+        <if test="department != null and department != ''">
+            AND b.department LIKE CONCAT('%', #{department}, '%')
+        </if>
+        <if test="returnStatus != null and returnStatus != ''">
+            AND b.return_status = #{returnStatus}
+        </if>
+        <if test="borrowTimeStart != null and borrowTimeStart != ''">
+            AND DATE(b.borrow_time) &gt;= #{borrowTimeStart}
+        </if>
+        <if test="borrowTimeEnd != null and borrowTimeEnd != ''">
+            AND DATE(b.borrow_time) &lt;= #{borrowTimeEnd}
+        </if>
         ORDER BY b.borrow_time DESC
     </select>
 

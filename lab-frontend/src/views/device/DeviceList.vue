@@ -3,11 +3,11 @@
     <!-- 卡片容器 -->
     <el-card shadow="never">
       <template #header>
-        <div class="card-header">
-          <span>设备列表</span>
-          <el-button type="primary" @click="handleAdd">新增设备</el-button>
-        </div>
-      </template>
+          <div class="card-header">
+            <span>设备列表</span>
+            <el-button v-if="isAdmin" type="primary" @click="handleAdd">新增设备</el-button>
+          </div>
+        </template>
 
       <!-- 搜索表单 -->
       <el-form :model="searchForm" inline>
@@ -61,11 +61,13 @@
             </el-tag>
           </template>
         </el-table-column>
+        
         <el-table-column prop="purchaseDate" label="购入日期" width="120">
           <template #default="{ row }">
             {{ row.purchaseDate ? row.purchaseDate : '—' }}
           </template>
         </el-table-column>
+        
         <el-table-column label="操作" width="180">
           <template #default="{ row }">
             <el-button
@@ -76,8 +78,9 @@
             >
               借用
             </el-button>
-            <el-button size="small" type="primary" link @click="handleEdit(row)">编辑</el-button>
-            <el-button size="small" type="danger" link @click="handleDelete(row.id)">删除</el-button>
+            <!-- 仅管理员可见操作 编辑、删除-->
+            <el-button v-if="isAdmin" size="small" type="primary" link @click="handleEdit(row)">编辑</el-button>
+            <el-button v-if="isAdmin" size="small" type="danger" link @click="handleDelete(row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -141,7 +144,7 @@
         
         <el-form-item label="预计归还时间" prop="expectedReturnTime">
           <el-date-picker
-            v-model="borrowTime"
+            v-model="borrowForm.expectedReturnTime"
             type="datetime"
             placeholder="选择预计归还时间"
             value-format="YYYY-MM-DD HH:mm"
@@ -178,6 +181,11 @@ import axios from 'axios'
 // 导入 Excel 相关库
 import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
+import { useAuth } from '@/composables/useAuth' // 引入权限控制
+
+// 获取当前用户信息
+const { currentUser, fetchCurrentUser } = useAuth()
+const isAdmin = computed(() => currentUser.value?.role === 'ADMIN')
 
 // 分页 & 搜索
 const page = ref(1)
@@ -397,7 +405,6 @@ const openBorrowDialog = (device) => {
   borrowForm.deviceConditionOnBorrow = '正常'
   borrowDialogVisible.value = true
 }
-const borrowTime = ref(new Date()) // 或者 null
 
 const submitBorrow = async () => {
   await borrowFormRef.value.validate()
@@ -418,6 +425,7 @@ const submitBorrow = async () => {
 
 
 // 初始加载
+fetchCurrentUser() // 确保在加载设备数据前获取当前用户信息
 loadData()
 </script>
 
