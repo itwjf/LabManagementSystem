@@ -41,19 +41,7 @@
             <span>借用记录</span>
           </el-menu-item>
 
-          <el-menu-item index="/users">
-            <template #title>
-              <el-icon><User /></el-icon>
-              <span>用户管理</span>
-            </template>
-          </el-menu-item>
 
-          <el-menu-item index="/settings">
-            <template #title>
-              <el-icon><Setting /></el-icon>
-              <span>系统设置</span>
-            </template>
-          </el-menu-item>
         </el-menu>
       </el-aside>
 
@@ -70,7 +58,7 @@
 -->
 <script setup>
 import { onMounted, ref } from 'vue'
-import { Monitor as Device, User, Setting } from '@element-plus/icons-vue'
+import { Monitor as Device, DocumentCopy } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
