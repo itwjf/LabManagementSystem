@@ -24,7 +24,7 @@ public class AssetInRecordServiceImpl extends ServiceImpl<AssetInRecordMapper, A
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createAssetInRecord(AssetInRecordCreateDTO dto) {
+    public AssetInRecord createAssetInRecord(AssetInRecordCreateDTO dto) {
         // 1. 创建入库记录
         AssetInRecord inRecord = new AssetInRecord();
         BeanUtils.copyProperties(dto, inRecord);
@@ -49,6 +49,9 @@ public class AssetInRecordServiceImpl extends ServiceImpl<AssetInRecordMapper, A
             // 保存更新
             assetService.updateById(asset);
         }
+        
+        // 返回创建的入库记录
+        return inRecord;
     }
 
     @Override

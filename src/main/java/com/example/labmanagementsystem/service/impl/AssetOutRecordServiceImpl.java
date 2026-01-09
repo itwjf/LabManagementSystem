@@ -26,7 +26,7 @@ public class AssetOutRecordServiceImpl extends ServiceImpl<AssetOutRecordMapper,
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createAssetOutRecord(AssetOutRecordCreateDTO dto) {
+    public AssetOutRecord createAssetOutRecord(AssetOutRecordCreateDTO dto) {
         // 1. 创建出库记录
         AssetOutRecord outRecord = new AssetOutRecord();
         BeanUtils.copyProperties(dto, outRecord);
@@ -47,6 +47,9 @@ public class AssetOutRecordServiceImpl extends ServiceImpl<AssetOutRecordMapper,
             // 保存更新
             assetService.updateById(asset);
         }
+        
+        // 返回创建的出库记录
+        return outRecord;
     }
 
     @Override

@@ -13,8 +13,9 @@ public interface AssetOutRecordService extends IService<AssetOutRecord> {
     /**
      * 创建资产出库记录
      * @param dto 出库记录创建DTO
+     * @return 创建的出库记录
      */
-    void createAssetOutRecord(AssetOutRecordCreateDTO dto);
+    AssetOutRecord createAssetOutRecord(AssetOutRecordCreateDTO dto);
     
     /**
      * 分页查询所有出库记录
