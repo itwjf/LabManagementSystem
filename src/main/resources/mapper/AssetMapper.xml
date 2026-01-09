@@ -4,15 +4,41 @@
 
 <mapper namespace="com.example.labmanagementsystem.mapper.AssetMapper">
 
+    <!-- 定义结果映射，确保关联查询的字段被正确映射到实体类 -->
+    <resultMap id="AssetWithTypeAndLabResultMap" type="com.example.labmanagementsystem.entity.Asset">
+        <!-- 资产表的字段 -->
+        <id column="asset_id" property="assetId" />
+        <result column="asset_name" property="assetName" />
+        <result column="type_id" property="typeId" />
+        <result column="spec_model" property="specModel" />
+        <result column="unit" property="unit" />
+        <result column="unit_price" property="unitPrice" />
+        <result column="total_quantity" property="totalQuantity" />
+        <result column="available_quantity" property="availableQuantity" />
+        <result column="total_value" property="totalValue" />
+        <result column="purchase_date" property="purchaseDate" />
+        <result column="purchaser_id" property="purchaserId" />
+        <result column="purchaser_name" property="purchaserName" />
+        <result column="supplier" property="supplier" />
+        <result column="status" property="status" />
+        <result column="lab_id" property="labId" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        
+        <!-- 关联查询的字段 -->
+        <result column="typeName" property="typeName" />
+        <result column="labName" property="labName" />
+    </resultMap>
+
     <!-- 分页查询：所有资产（带资产类型和实训室名称） -->
-    <select id="selectAllAssetsWithTypeAndLabName" resultType="com.example.labmanagementsystem.entity.Asset">
+    <select id="selectAllAssetsWithTypeAndLabName" resultMap="AssetWithTypeAndLabResultMap">
         SELECT
             a.*,
-            at.type_name AS assetTypeName,
-            l.lab_name AS labName
+            at.type_name AS `typeName`,
+            l.lab_name AS `labName`
         FROM asset a
-                 LEFT JOIN asset_type at ON a.type_id = at.id
-                 LEFT JOIN lab_info l ON a.lab_id = l.id
+                 LEFT JOIN asset_type at ON a.type_id = at.type_id
+                 LEFT JOIN lab_info l ON a.lab_id = l.lab_id
         WHERE 1=1
         <if test="assetName != null and assetName != ''">
             AND a.asset_name LIKE CONCAT('%', #{assetName}, '%')

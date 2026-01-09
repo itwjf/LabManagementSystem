@@ -41,6 +41,33 @@
             <span>借用记录</span>
           </el-menu-item>
 
+          <!-- 固定资产管理菜单项 -->
+          <el-sub-menu index="assets">
+            <template #title>
+              <el-icon><List /></el-icon>
+              <span>固定资产管理</span>
+            </template>
+            <el-menu-item index="/assets">
+              <el-icon><List /></el-icon>
+              <span>资产列表</span>
+            </el-menu-item>
+            <el-menu-item index="/asset-types">
+              <el-icon><Menu /></el-icon>
+              <span>资产类型管理</span>
+            </el-menu-item>
+            <el-menu-item index="/lab-info">
+              <el-icon><HomeFilled /></el-icon>
+              <span>实训室管理</span>
+            </el-menu-item>
+            <el-menu-item index="/asset-in-records">
+              <el-icon><Upload /></el-icon>
+              <span>资产入库记录</span>
+            </el-menu-item>
+            <el-menu-item index="/asset-out-records">
+              <el-icon><Download /></el-icon>
+              <span>资产出库记录</span>
+            </el-menu-item>
+          </el-sub-menu>
 
         </el-menu>
       </el-aside>
@@ -58,7 +85,7 @@
 -->
 <script setup>
 import { onMounted, ref } from 'vue'
-import { Monitor as Device, DocumentCopy } from '@element-plus/icons-vue'
+import { Monitor as Device, DocumentCopy, List, Menu, HomeFilled, Upload, Download } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 

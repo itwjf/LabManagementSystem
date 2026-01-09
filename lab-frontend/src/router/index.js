@@ -7,25 +7,30 @@ import LoginView from '@/views/LoginView.vue'
 import DeviceList from '@/views/device/DeviceList.vue'
 import BorrowRecordList from '@/views/device/BorrowRecordList.vue'
 
+// 资产相关页面
+import AssetList from '@/views/asset/AssetList.vue'
+import AssetTypeList from '@/views/asset/AssetTypeList.vue'
+import LabInfoList from '@/views/asset/LabInfoList.vue'
+import AssetInRecordList from '@/views/asset/AssetInRecordList.vue'
+import AssetOutRecordList from '@/views/asset/AssetOutRecordList.vue'
+
 // 定义路由规则
 const routes = [
   // 登录页：不使用 BasicLayout
-  {
-    path: '/login',
-    name: 'Login',
-    component: LoginView,
-    meta: { requiresAuth: false }
-  },
+  { path: '/login', name: 'Login', component: LoginView, meta: { requiresAuth: false } },
 
   // 主系统：使用 BasicLayout 作为父布局
-  {
-    path: '/',
-    component: BasicLayout,
-    meta: { requiresAuth: true },
+  { path: '/', component: BasicLayout, meta: { requiresAuth: true },
     children: [
       { path: '', redirect: '/devices' },
       { path: 'devices', name: 'Devices', component: DeviceList },
-      { path: 'borrows', name: 'Borrows', component:BorrowRecordList}
+      { path: 'borrows', name: 'Borrows', component:BorrowRecordList},
+      // 资产相关路由
+      { path: 'assets', name: 'Assets', component: AssetList },
+      { path: 'asset-types', name: 'AssetTypes', component: AssetTypeList },
+      { path: 'lab-info', name: 'LabInfo', component: LabInfoList },
+      { path: 'asset-in-records', name: 'AssetInRecords', component: AssetInRecordList },
+      { path: 'asset-out-records', name: 'AssetOutRecords', component: AssetOutRecordList }
     ]
   },
 

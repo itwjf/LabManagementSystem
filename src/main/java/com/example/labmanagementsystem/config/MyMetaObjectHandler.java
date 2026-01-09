@@ -18,9 +18,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     public void insertFill(MetaObject metaObject) {
 
         // strictInsertFill(对象, 字段名, 值提供者, 字段类型)
-        this.strictInsertFill(metaObject,"createdAt", LocalDateTime::now,LocalDateTime.class);
+        this.strictInsertFill(metaObject, "createTime", LocalDateTime::now, LocalDateTime.class);
 
-        this.strictInsertFill(metaObject, "updatedAt", LocalDateTime::now,LocalDateTime.class);
+        this.strictInsertFill(metaObject, "updateTime", LocalDateTime::now, LocalDateTime.class);
     }
 
 
@@ -31,8 +31,8 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void updateFill(MetaObject metaObject) {
 
-        // 只更新 updatedAt，createdAt 不变
-        this.strictUpdateFill(metaObject, "updatedAt", LocalDateTime::now, LocalDateTime.class);
+        // 只更新 updateTime，createTime 不变
+        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime::now, LocalDateTime.class);
     }
 
 
