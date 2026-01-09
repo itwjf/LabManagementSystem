@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.labmanagementsystem.mapper.AssetOutRecordMapper">
+
+    <!-- 分页查询：所有出库记录（带资产名称和实训室名称） -->
+    <select id="selectAllOutRecordsWithAssetAndLabName" resultType="com.example.labmanagementsystem.entity.AssetOutRecord">
+        SELECT
+            aor.*,
+            a.asset_name AS assetName,
+            l.lab_name AS labName
+        FROM asset_out_record aor
+                 LEFT JOIN asset a ON aor.asset_id = a.id
+                 LEFT JOIN lab_info l ON aor.lab_id = l.id
+        WHERE 1=1
+        <if test="assetId != null">
+            AND aor.asset_id = #{assetId}
+        </if>
+        <if test="assetName != null and assetName != ''">
+            AND a.asset_name LIKE CONCAT('%', #{assetName}, '%')
+        </if>
+        <if test="labId != null">
+            AND aor.lab_id = #{labId}
+        </if>
+        <if test="outReason != null and outReason != ''">
+            AND aor.out_reason LIKE CONCAT('%', #{outReason}, '%')
+        </if>
+        <if test="approvalStatus != null and approvalStatus != ''">
+            AND aor.approval_status = #{approvalStatus}
+        </if>
+        <if test="outDateStart != null and outDateStart != ''">
+            AND DATE(aor.out_date) &gt;= #{outDateStart}
+        </if>
+        <if test="outDateEnd != null and outDateEnd != ''">
+            AND DATE(aor.out_date) &lt;= #{outDateEnd}
+        </if>
+        ORDER BY aor.out_date DESC
+    </select>
+
+</mapper>

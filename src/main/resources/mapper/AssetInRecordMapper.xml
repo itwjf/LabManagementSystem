@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.labmanagementsystem.mapper.AssetInRecordMapper">
+
+    <!-- 分页查询：所有入库记录（带资产名称和实训室名称） -->
+    <select id="selectAllInRecordsWithAssetAndLabName" resultType="com.example.labmanagementsystem.entity.AssetInRecord">
+        SELECT
+            air.*,
+            a.asset_name AS assetName,
+            l.lab_name AS labName
+        FROM asset_in_record air
+                 LEFT JOIN asset a ON air.asset_id = a.id
+                 LEFT JOIN lab_info l ON air.lab_id = l.id
+        WHERE 1=1
+        <if test="assetId != null">
+            AND air.asset_id = #{assetId}
+        </if>
+        <if test="assetName != null and assetName != ''">
+            AND a.asset_name LIKE CONCAT('%', #{assetName}, '%')
+        </if>
+        <if test="labId != null">
+            AND air.lab_id = #{labId}
+        </if>
+        <if test="purchaserName != null and purchaserName != ''">
+            AND air.purchaser_name LIKE CONCAT('%', #{purchaserName}, '%')
+        </if>
+        <if test="inDateStart != null and inDateStart != ''">
+            AND DATE(air.in_date) &gt;= #{inDateStart}
+        </if>
+        <if test="inDateEnd != null and inDateEnd != ''">
+            AND DATE(air.in_date) &lt;= #{inDateEnd}
+        </if>
+        ORDER BY air.in_date DESC
+    </select>
+
+</mapper>

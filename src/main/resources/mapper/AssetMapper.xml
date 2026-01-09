@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.labmanagementsystem.mapper.AssetMapper">
+
+    <!-- 分页查询：所有资产（带资产类型和实训室名称） -->
+    <select id="selectAllAssetsWithTypeAndLabName" resultType="com.example.labmanagementsystem.entity.Asset">
+        SELECT
+            a.*,
+            at.type_name AS assetTypeName,
+            l.lab_name AS labName
+        FROM asset a
+                 LEFT JOIN asset_type at ON a.type_id = at.id
+                 LEFT JOIN lab_info l ON a.lab_id = l.id
+        WHERE 1=1
+        <if test="assetName != null and assetName != ''">
+            AND a.asset_name LIKE CONCAT('%', #{assetName}, '%')
+        </if>
+        <if test="typeId != null">
+            AND a.type_id = #{typeId}
+        </if>
+        <if test="labId != null">
+            AND a.lab_id = #{labId}
+        </if>
+        <if test="status != null and status != ''">
+            AND a.status = #{status}
+        </if>
+        ORDER BY a.create_time DESC
+    </select>
+
+</mapper>

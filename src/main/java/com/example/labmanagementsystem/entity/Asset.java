@@ -7,7 +7,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Data // Lombok 自动生成 getter/setter/toString 等
+
+
+@Data// Lombok 自动生成 getter/setter/toString 等
 @TableName("asset")
 public class Asset {
 
