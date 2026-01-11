@@ -11,8 +11,8 @@
             a.asset_name AS assetName,
             l.lab_name AS labName
         FROM asset_in_record air
-                 LEFT JOIN asset a ON air.asset_id = a.id
-                 LEFT JOIN lab_info l ON air.lab_id = l.id
+                 LEFT JOIN asset a ON air.asset_id = a.asset_id
+                 LEFT JOIN lab_info l ON air.lab_id = l.lab_id
         WHERE 1=1
         <if test="assetId != null">
             AND air.asset_id = #{assetId}

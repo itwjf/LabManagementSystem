@@ -132,8 +132,15 @@
     <!-- 弹窗：新增入库记录 -->
     <el-dialog :title="dialogTitle" v-model="dialogVisible" width="600px">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
-        <el-form-item label="资产ID" prop="assetId">
-          <el-input v-model="form.assetId" placeholder="请输入资产ID" />
+        <el-form-item label="资产" prop="assetId">
+          <el-select v-model="form.assetId" placeholder="请选择资产">
+            <el-option
+              v-for="asset in assets"
+              :key="asset.assetId"
+              :label="asset.assetName + ' (' + asset.assetId + ')'"
+              :value="asset.assetId"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="实训室ID" prop="labId">
           <el-select v-model="form.labId" placeholder="请选择所属实训室">
@@ -160,17 +167,25 @@
             value-format="YYYY-MM-DD"
           />
         </el-form-item>
-        <el-form-item label="采购人ID" prop="purchaserId">
-          <el-input v-model="form.purchaserId" placeholder="请输入采购人ID" />
+        <el-form-item label="采购人" prop="purchaserId">
+          <el-select v-model="form.purchaserId" placeholder="请选择采购人" @change="updatePurchaserName">
+            <el-option
+              v-for="user in users"
+              :key="user.id"
+              :label="user.realName + ' (' + user.id + ')'"
+              :value="user.id"
+            />
+          </el-select>
         </el-form-item>
-        <el-form-item label="采购人姓名" prop="purchaserName">
-          <el-input v-model="form.purchaserName" placeholder="请输入采购人姓名" />
-        </el-form-item>
-        <el-form-item label="经办人ID" prop="handlerId">
-          <el-input v-model="form.handlerId" placeholder="请输入经办人ID" />
-        </el-form-item>
-        <el-form-item label="经办人姓名" prop="handlerName">
-          <el-input v-model="form.handlerName" placeholder="请输入经办人姓名" />
+        <el-form-item label="经办人" prop="handlerId">
+          <el-select v-model="form.handlerId" placeholder="请选择经办人" @change="updateHandlerName">
+            <el-option
+              v-for="user in users"
+              :key="user.id"
+              :label="user.realName + ' (' + user.id + ')'"
+              :value="user.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />
@@ -190,6 +205,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuth } from '@/composables/useAuth' // 引入权限控制
 import * as assetInRecordApi from '@/api/assetInRecord' // 资产入库记录API
 import * as labInfoApi from '@/api/labInfo' // 实训室API
+import * as assetApi from '@/api/asset' // 资产API
+import * as userApi from '@/api/user' // 用户API
 
 // 获取当前用户信息
 const { currentUser, fetchCurrentUser } = useAuth()
@@ -216,6 +233,12 @@ const tableData = ref([])
 // 实训室数据
 const labs = ref([])
 
+// 资产数据
+const assets = ref([])
+
+// 用户数据
+const users = ref([])
+
 // 弹窗
 const dialogVisible = ref(false)
 const editMode = ref(false)
@@ -241,13 +264,13 @@ const dialogTitle = computed(() => (editMode.value ? '编辑入库记录' : '新
 
 // 表单校验规则
 const rules = {
-  assetId: [{ required: true, message: '请输入资产ID', trigger: 'blur' }],
+  assetId: [{ required: true, message: '请选择资产', trigger: 'change' }],
   labId: [{ required: true, message: '请选择所属实训室', trigger: 'change' }],
   quantity: [{ required: true, message: '请输入入库数量', trigger: 'blur' }, { type: 'number', message: '入库数量必须为数字', trigger: 'blur' }],
   unitPrice: [{ required: true, message: '请输入入库单价', trigger: 'blur' }, { type: 'number', message: '入库单价必须为数字', trigger: 'blur' }],
   purchaseDate: [{ required: true, message: '请选择购置日期', trigger: 'change' }],
-  purchaserName: [{ required: true, message: '请输入采购人姓名', trigger: 'blur' }],
-  handlerName: [{ required: true, message: '请输入经办人姓名', trigger: 'blur' }]
+  purchaserId: [{ required: true, message: '请选择采购人', trigger: 'change' }],
+  handlerId: [{ required: true, message: '请选择经办人', trigger: 'change' }]
 }
 
 // 监听日期范围变化
@@ -342,6 +365,34 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
+// 更新采购人姓名
+const updatePurchaserName = (userId) => {
+  if (!userId) {
+    form.purchaserName = ''
+    return
+  }
+  const user = users.value.find(u => u.id === userId)
+  if (user) {
+    form.purchaserName = user.realName
+  } else {
+    form.purchaserName = ''
+  }
+}
+
+// 更新经办人姓名
+const updateHandlerName = (userId) => {
+  if (!userId) {
+    form.handlerName = ''
+    return
+  }
+  const user = users.value.find(u => u.id === userId)
+  if (user) {
+    form.handlerName = user.realName
+  } else {
+    form.handlerName = ''
+  }
+}
+
 // 提交表单
 const submitForm = async () => {
   await formRef.value.validate()
@@ -362,6 +413,26 @@ const submitForm = async () => {
   }
 }
 
+// 加载资产数据
+const loadAssets = async () => {
+  try {
+    const res = await assetApi.getAllAssets()
+    assets.value = res || []
+  } catch (err) {
+    ElMessage.error('加载资产失败：' + (err.response?.data?.message || err.message))
+  }
+}
+
+// 加载用户数据
+const loadUsers = async () => {
+  try {
+    const res = await userApi.getAllUsers()
+    users.value = res || []
+  } catch (err) {
+    ElMessage.error('加载用户失败：' + (err.response?.data?.message || err.message))
+  }
+}
+
 // 加载实训室数据
 const loadLabs = async () => {
   try {
@@ -375,7 +446,7 @@ const loadLabs = async () => {
 // 组件挂载时加载数据
 onMounted(async () => {
   await fetchCurrentUser() // 确保在加载数据前获取当前用户信息
-  await loadLabs() // 加载实训室数据
+  await Promise.all([loadLabs(), loadAssets(), loadUsers()]) // 并行加载实训室、资产和用户数据
   loadData() // 加载入库记录列表数据
 })
 </script>

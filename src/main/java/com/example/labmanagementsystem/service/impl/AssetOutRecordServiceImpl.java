@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.labmanagementsystem.dto.AssetOutRecordCreateDTO;
 import com.example.labmanagementsystem.entity.Asset;
 import com.example.labmanagementsystem.entity.AssetOutRecord;
+import com.example.labmanagementsystem.entity.User;
 import com.example.labmanagementsystem.mapper.AssetOutRecordMapper;
+import com.example.labmanagementsystem.mapper.UserMapper;
 import com.example.labmanagementsystem.service.AssetOutRecordService;
 import com.example.labmanagementsystem.service.AssetService;
 import org.springframework.beans.BeanUtils;
@@ -23,6 +25,9 @@ public class AssetOutRecordServiceImpl extends ServiceImpl<AssetOutRecordMapper,
 
     @Autowired
     private AssetService assetService;
+    
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -33,6 +38,22 @@ public class AssetOutRecordServiceImpl extends ServiceImpl<AssetOutRecordMapper,
         
         // 设置出库日期
         outRecord.setOutDate(LocalDateTime.now());
+        
+        // 设置出库经办人姓名
+        if (dto.getHandlerId() != null) {
+            User handler = userMapper.selectById(dto.getHandlerId());
+            if (handler != null) {
+                outRecord.setHandlerName(handler.getRealName());
+            }
+        }
+        
+        // 设置审批人姓名（如果有）
+        if (dto.getApproverId() != null) {
+            User approver = userMapper.selectById(dto.getApproverId());
+            if (approver != null) {
+                outRecord.setApproverName(approver.getRealName());
+            }
+        }
         
         // 保存出库记录
         this.save(outRecord);

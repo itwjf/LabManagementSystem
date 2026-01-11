@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.labmanagementsystem.dto.AssetInRecordCreateDTO;
 import com.example.labmanagementsystem.entity.Asset;
 import com.example.labmanagementsystem.entity.AssetInRecord;
+import com.example.labmanagementsystem.entity.User;
 import com.example.labmanagementsystem.mapper.AssetInRecordMapper;
+import com.example.labmanagementsystem.mapper.UserMapper;
 import com.example.labmanagementsystem.service.AssetInRecordService;
 import com.example.labmanagementsystem.service.AssetService;
 import org.springframework.beans.BeanUtils;
@@ -21,6 +23,9 @@ public class AssetInRecordServiceImpl extends ServiceImpl<AssetInRecordMapper, A
 
     @Autowired
     private AssetService assetService;
+    
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -34,6 +39,22 @@ public class AssetInRecordServiceImpl extends ServiceImpl<AssetInRecordMapper, A
         
         // 计算总金额
         inRecord.setTotalAmount(dto.getUnitPrice().multiply(new BigDecimal(dto.getQuantity())));
+        
+        // 设置入库经办人姓名
+        if (dto.getHandlerId() != null) {
+            User handler = userMapper.selectById(dto.getHandlerId());
+            if (handler != null) {
+                inRecord.setHandlerName(handler.getRealName());
+            }
+        }
+        
+        // 设置采购人姓名（如果有）
+        if (dto.getPurchaserId() != null) {
+            User purchaser = userMapper.selectById(dto.getPurchaserId());
+            if (purchaser != null) {
+                inRecord.setPurchaserName(purchaser.getRealName());
+            }
+        }
         
         // 保存入库记录
         this.save(inRecord);

@@ -25,5 +25,7 @@ public class AssetOutRecordCreateDTO {
 
     private Long approverId;
 
+    private String approvalStatus;
+
     private String remark;
 }
