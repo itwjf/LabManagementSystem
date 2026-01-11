@@ -32,6 +32,9 @@ public class AssetInRecordServiceImpl extends ServiceImpl<AssetInRecordMapper, A
         // 设置入库日期
         inRecord.setInDate(LocalDateTime.now());
         
+        // 计算总金额
+        inRecord.setTotalAmount(dto.getUnitPrice().multiply(new BigDecimal(dto.getQuantity())));
+        
         // 保存入库记录
         this.save(inRecord);
         
